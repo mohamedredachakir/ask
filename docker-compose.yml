@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    user: "1000:1000"
+    volumes:
+      - ./src:/var/www/html  # Or use ./:/var/www/html if Laravel root
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "3535:80"
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: my_db
+      POSTGRES_USER: reddcs
+      POSTGRES_PASSWORD: reddcs
+    ports:
+      - "2004:5432"
+    volumes:
+      - pgtables:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: reddcs@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: reddcs
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  pgtables:
